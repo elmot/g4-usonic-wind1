@@ -20,7 +20,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cordic.h"
 #include "usart.h"
+#include "opamp.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -89,12 +91,16 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_LPUART1_UART_Init();
+  MX_CORDIC_Init();
+  MX_OPAMP2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
   while (1)
   {
     /* USER CODE END WHILE */
@@ -102,8 +108,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
     HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
     HAL_Delay(300);
+    HAL_UART_Transmit(&hlpuart1,(uint8_t *) "Testme\n\r",8,200);
+
+    /*## Configure the CORDIC peripheral ####################################*/
 
   }
+#pragma clang diagnostic pop
   /* USER CODE END 3 */
 }
 
@@ -185,6 +195,8 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 { 
   /* USER CODE BEGIN 6 */
+  (void) file;
+  (void) line;
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
