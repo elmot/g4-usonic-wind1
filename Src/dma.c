@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : SYS.c
+  * File Name          : dma.c
   * Description        : This file provides code for the configuration
-  *                      of the SYS instances.
+  *                      of all the requested memory to memory DMA transfers.
   ******************************************************************************
   * @attention
   *
@@ -18,30 +18,47 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "sys.h"
+#include "dma.h"
 
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 
-/* SYS init function */
-void MX_SYS_Init(void)
-{
-
-  /** Disable the Internal Voltage Reference buffer 
-  */
-  HAL_SYSCFG_DisableVREFBUF();
-  /** Configure the internal voltage reference buffer high impedance mode 
-  */
-  HAL_SYSCFG_VREFBUF_HighImpedanceConfig(SYSCFG_VREFBUF_HIGH_IMPEDANCE_ENABLE);
-  /** Disable the internal Pull-Up in Dead Battery pins of UCPD peripheral 
-  */
-  LL_PWR_DisableDeadBatteryPD();
-
-}
+/*----------------------------------------------------------------------------*/
+/* Configure DMA                                                              */
+/*----------------------------------------------------------------------------*/
 
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+
+/** 
+  * Enable DMA controller clock
+  */
+void MX_DMA_Init(void) 
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+}
+
+/* USER CODE BEGIN 2 */
+
+/* USER CODE END 2 */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

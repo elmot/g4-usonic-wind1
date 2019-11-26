@@ -1,33 +1,37 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "cordic.h"
+#include "dac.h"
+#include "dma.h"
 #include "usart.h"
 #include "opamp.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,11 +57,15 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+__unused int _write(__unused int file, char *ptr, int len) {
+  HAL_UART_Transmit(&hlpuart1, (uint8_t *)ptr, len, len);
+}
+
+uint16_t adcBuffer[20000];
 
 /* USER CODE END 0 */
 
@@ -68,7 +76,6 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
   
 
@@ -93,25 +100,39 @@ int main(void)
   MX_LPUART1_UART_Init();
   MX_CORDIC_Init();
   MX_OPAMP2_Init();
+  MX_TIM8_Init();
+  MX_DMA_Init();
+  MX_ADC2_Init();
+  MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_TIM_Base_Start(&htim8);
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
+  __HAL_DAC_ENABLE(&hdac1,DAC_CHANNEL_1); 
+  __HAL_DAC_ENABLE(&hdac1, DAC_CHANNEL_1);
+  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-#pragma clang diagnostic push
+#pragma clang diagnostic push 
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
-  while (1)
-  {
+  int i;
+  while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
+    HAL_StatusTypeDef status =
+        HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, 20000);
     HAL_Delay(300);
-    HAL_UART_Transmit(&hlpuart1,(uint8_t *) "Testme\n\r",8,200);
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    status = HAL_ADC_Stop_DMA(&hadc2);
+    HAL_UART_Transmit(&hlpuart1, (uint8_t *)"Testme\n\r", 8, 200);
+    printf("Test semihosting\n");
 
     /*## Configure the CORDIC peripheral ####################################*/
-
   }
 #pragma clang diagnostic pop
   /* USER CODE END 3 */
@@ -137,7 +158,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV6;
-  RCC_OscInitStruct.PLL.PLLN = 85;
+  RCC_OscInitStruct.PLL.PLLN = 80;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -154,14 +175,15 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_8) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
   {
     Error_Handler();
   }
   /** Initializes the peripherals clocks 
   */
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1|RCC_PERIPHCLK_ADC12;
   PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
+  PeriphClkInit.Adc12ClockSelection = RCC_ADC12CLKSOURCE_SYSCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
