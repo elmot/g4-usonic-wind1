@@ -1,0 +1,110 @@
+Configuration	g4-usonic-wind1
+STM32CubeMX 	5.4.0
+Date	11/26/2019
+MCU	STM32G474RETx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC2	IN17 Single-ended	ADC2_IN17	PA4
+CORDIC	Activated	CORDIC_VS_CORDIC	VP_CORDIC_VS_CORDIC
+DAC1	Connected to external pin only	DAC1_OUT1	PA4
+LPUART1	Asynchronous	LPUART1_RX	PA3
+LPUART1	Asynchronous	LPUART1_TX	PA2
+OPAMP2	PGA Internally Connected	OPAMP2_VINP	PA7
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	PF0-OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	PF1-OSC_OUT
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_IN	PC14-OSC32_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_OUT	PC15-OSC32_OUT
+SYS	Trace Asynchronous Sw	SYS_JTMS-SWDIO	PA13
+SYS	Trace Asynchronous Sw	SYS_JTCK-SWCLK	PA14
+SYS	Trace Asynchronous Sw	SYS_JTDO-SWO	PB3
+SYS	External voltage reference	SYS_V_VREFBUF	VP_SYS_V_VREFBUF
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+SYS	Dead Battery Signals disabled	SYS_VS_DBSignals	VP_SYS_VS_DBSignals
+TIM8	PWM Generation CH3	TIM8_CH3	PC8
+TIM8	PWM Generation CH4	TIM8_CH4	PC9
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+2	PC13	GPIO_EXTI13	B1 [blue push button]
+3	PC14-OSC32_IN	RCC_OSC32_IN	
+4	PC15-OSC32_OUT	RCC_OSC32_OUT	
+5	PF0-OSC_IN	RCC_OSC_IN	
+6	PF1-OSC_OUT	RCC_OSC_OUT	
+14	PA2	LPUART1_TX	LPUART1_TX [STLINKV3E_VCP_RX]
+17	PA3	LPUART1_RX	LPUART1_RX [STLINKV3E_VCP_TX]
+18	PA4	DAC1_OUT1 ADC2_IN17	
+19	PA5	GPIO_Output	LD2 [green led]
+21	PA7	OPAMP2_VINP	
+40	PC8	TIM8_CH3	
+41	PC9	TIM8_CH4	
+49	PA13	SYS_JTMS-SWDIO	T_SWDIO
+50	PA14	SYS_JTCK-SWCLK	T_SWCLK
+56	PB3	SYS_JTDO-SWO	T_SWO
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC2	IN17 Single-ended	ADC2_IN17	PA4
+CORDIC	Activated	CORDIC_VS_CORDIC	VP_CORDIC_VS_CORDIC
+DAC1	Connected to external pin only	DAC1_OUT1	PA4
+LPUART1	Asynchronous	LPUART1_RX	PA3
+LPUART1	Asynchronous	LPUART1_TX	PA2
+OPAMP2	PGA Internally Connected	OPAMP2_VINP	PA7
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	PF0-OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	PF1-OSC_OUT
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_IN	PC14-OSC32_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC32_OUT	PC15-OSC32_OUT
+SYS	Trace Asynchronous Sw	SYS_JTMS-SWDIO	PA13
+SYS	Trace Asynchronous Sw	SYS_JTCK-SWCLK	PA14
+SYS	Trace Asynchronous Sw	SYS_JTDO-SWO	PB3
+SYS	External voltage reference	SYS_V_VREFBUF	VP_SYS_V_VREFBUF
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+SYS	Dead Battery Signals disabled	SYS_VS_DBSignals	VP_SYS_VS_DBSignals
+TIM8	PWM Generation CH3	TIM8_CH3	PC8
+TIM8	PWM Generation CH4	TIM8_CH4	PC9
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+2	PC13	GPIO_EXTI13	B1 [blue push button]
+3	PC14-OSC32_IN	RCC_OSC32_IN	
+4	PC15-OSC32_OUT	RCC_OSC32_OUT	
+5	PF0-OSC_IN	RCC_OSC_IN	
+6	PF1-OSC_OUT	RCC_OSC_OUT	
+14	PA2	LPUART1_TX	LPUART1_TX [STLINKV3E_VCP_RX]
+17	PA3	LPUART1_RX	LPUART1_RX [STLINKV3E_VCP_TX]
+18	PA4	DAC1_OUT1 ADC2_IN17	
+19	PA5	GPIO_Output	LD2 [green led]
+21	PA7	OPAMP2_VINP	
+40	PC8	TIM8_CH3	
+41	PC9	TIM8_CH4	
+49	PA13	SYS_JTMS-SWDIO	T_SWDIO
+50	PA14	SYS_JTCK-SWCLK	T_SWCLK
+56	PB3	SYS_JTDO-SWO	T_SWO
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : g4-usonic-wind1
+Project Folder : D:\projects\g4-usonic-wind1
+Toolchain / IDE : STM32CubeIDE
+Firmware Package Name and Version : STM32Cube FW_G4 V1.1.0
+
+
+Code Generation Settings : 
+STM32Cube MCU packages and embedded software packs : Copy only the necessary library files
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+
