@@ -111,8 +111,10 @@ int main(void)
   __HAL_DAC_ENABLE(&hdac1,DAC_CHANNEL_1); 
   __HAL_DAC_ENABLE(&hdac1, DAC_CHANNEL_1);
   HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  HAL_OPAMP_SelfCalibrate(&hopamp2);
   while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
   }
+  HAL_OPAMP_Start(&hopamp2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
