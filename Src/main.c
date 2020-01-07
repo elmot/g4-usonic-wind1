@@ -20,10 +20,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "adc.h"
 #include "cordic.h"
 #include "dac.h"
-#include "dma.h"
 #include "usart.h"
 #include "opamp.h"
 #include "tim.h"
@@ -101,34 +99,33 @@ int main(void)
   MX_CORDIC_Init();
   MX_OPAMP2_Init();
   MX_TIM8_Init();
-  MX_DMA_Init();
-  MX_ADC2_Init();
   MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim8);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
-  __HAL_DAC_ENABLE(&hdac1,DAC_CHANNEL_1); 
-  __HAL_DAC_ENABLE(&hdac1, DAC_CHANNEL_1);
-  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
-  while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
-  }
+  HAL_DAC_Start(&hdac1,DAC_CHANNEL_1);
+  HAL_DAC_SetValue(&hdac1,DAC_CHANNEL_1,DAC_ALIGN_12B_R,2048);
+  HAL_OPAMP_Start(&hopamp2);
+  //  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  //  while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
+  //  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-#pragma clang diagnostic push 
+#pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
   int i;
   while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_StatusTypeDef status =
-        HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, 20000);
+    //    HAL_StatusTypeDef status =
+    //        HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, 20000);
     HAL_Delay(300);
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    status = HAL_ADC_Stop_DMA(&hadc2);
+    //    status = HAL_ADC_Stop_DMA(&hadc2);
     HAL_UART_Transmit(&hlpuart1, (uint8_t *)"Testme\n\r", 8, 200);
     printf("Test semihosting\n");
 
@@ -181,9 +178,8 @@ void SystemClock_Config(void)
   }
   /** Initializes the peripherals clocks 
   */
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1|RCC_PERIPHCLK_ADC12;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1;
   PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
-  PeriphClkInit.Adc12ClockSelection = RCC_ADC12CLKSOURCE_SYSCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
