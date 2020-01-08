@@ -265,6 +265,7 @@ UsedLibraryUrn="urn:adsk.eagle:library:198"
 UsedLibraryUrn="urn:adsk.eagle:library:199"
 UsedLibrary="C:/Users/Ilia.Motornyi/Documents/EAGLE/libraries/misc.lbr"
 UsedLibrary="d:/projects/winsensor_mech/pcbs/mech_anemometer.lbr"
+UsedLibraryUrn="urn:adsk.eagle:library:13157616"
 
 [Win_1]
 Type="Control Panel"

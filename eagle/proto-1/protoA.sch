@@ -1317,7 +1317,6 @@ OPAMP2_VINP2 = PA7 = CN10-15 = D11</text>
 </plain>
 <instances>
 <instance part="X1" gate="G$1" x="33.02" y="73.66" smashed="yes">
-<attribute name="NAME" x="40.64" y="68.58" size="1.778" layer="95"/>
 <attribute name="VALUE" x="40.64" y="60.96" size="1.778" layer="96"/>
 </instance>
 <instance part="BZ1" gate="G$1" x="-17.78" y="73.66" smashed="yes" rot="R180">

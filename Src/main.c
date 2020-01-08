@@ -20,8 +20,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "cordic.h"
 #include "dac.h"
+#include "dma.h"
 #include "usart.h"
 #include "opamp.h"
 #include "tim.h"
@@ -29,7 +31,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,8 +63,14 @@ void SystemClock_Config(void);
 __unused int _write(__unused int file, char *ptr, int len) {
   HAL_UART_Transmit(&hlpuart1, (uint8_t *)ptr, len, len);
 }
+#define ADC_BUF_LEN 5000
+uint16_t adcBuffer[ADC_BUF_LEN];
 
-uint16_t adcBuffer[20000];
+volatile bool adcFinished = 1;
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+  adcFinished = true;
+}
+
 
 /* USER CODE END 0 */
 
@@ -99,37 +106,79 @@ int main(void)
   MX_CORDIC_Init();
   MX_OPAMP2_Init();
   MX_TIM8_Init();
+  MX_DMA_Init();
+  MX_ADC2_Init();
   MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim8);
-  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
+  HAL_TIM_OC_Start(&htim8, TIM_CHANNEL_1);
+  HAL_TIMEx_OCN_Start(&htim8, TIM_CHANNEL_1);
+  HAL_TIM_OC_Start(&htim8, TIM_CHANNEL_2);
+  HAL_TIMEx_OCN_Start(&htim8, TIM_CHANNEL_2);
   HAL_DAC_Start(&hdac1,DAC_CHANNEL_1);
   HAL_DAC_SetValue(&hdac1,DAC_CHANNEL_1,DAC_ALIGN_12B_R,2048);
   HAL_OPAMP_Start(&hopamp2);
-  //  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
-  //  while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
-  //  }
+  HAL_ADCEx_Calibration_Start(&hadc2, ADC_DIFFERENTIAL_ENDED);
+  while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
+  }
   /* USER CODE END 2 */
+ 
+ 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
-  int i;
   while (1) {
-    /* USER CODE END WHILE */
+    long long maxDist = 0;
+    int maxDistIdx = 0;
+    long long minDist = ULONG_LONG_MAX;
+    int minDistIdx = 0;
 
-    /* USER CODE BEGIN 3 */
-    //    HAL_StatusTypeDef status =
-    //        HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, 20000);
-    HAL_Delay(300);
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    //    status = HAL_ADC_Stop_DMA(&hadc2);
-    HAL_UART_Transmit(&hlpuart1, (uint8_t *)"Testme\n\r", 8, 200);
-    printf("Test semihosting\n");
 
-    /*## Configure the CORDIC peripheral ####################################*/
+    long long maxDistDiff = 0;
+    int maxDistIdxDiff = 0;
+    long long minDistDiff = ULONG_LONG_MAX;
+    int minDistIdxDiff = 0;
+
+    unsigned long dists[2000];
+
+    for (int shift = 0; shift <2000; shift+= 1) {
+      /* USER CODE END WHILE */
+
+      /* USER CODE BEGIN 3 */
+
+      //    HAL_Delay(100);
+      HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+      //    status = HAL_ADC_Stop_DMA(&hadc2);
+      __HAL_TIM_SET_COUNTER(&htim8,0);
+      __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, shift);
+      __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 1999 - shift);
+
+      HAL_Delay(2); // let acoustics to be stabilized
+      adcFinished = false;
+      HAL_SuspendTick();
+      HAL_StatusTypeDef status =
+          HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, ADC_BUF_LEN);
+      while (!adcFinished) {
+        __WFI();
+      }
+      HAL_ADC_Stop_DMA(&hadc2);
+      HAL_ResumeTick();
+
+      unsigned long sum = 0;
+      unsigned long long distort = 0;
+      for(int i = 0; i < ADC_BUF_LEN; ++i) {
+        sum +=  adcBuffer[i];
+        distort +=  adcBuffer[i] * adcBuffer[i];
+      }
+      distort -= (unsigned long long)sum * sum / ADC_BUF_LEN;
+//      printf("S: %d; D: %lld\n", shift, distort / ADC_BUF_LEN);
+      /*## Configure the CORDIC peripheral
+       * ####################################*/
+      dists[shift] = distort / ADC_BUF_LEN;
+    }
+    __NOP();
   }
 #pragma clang diagnostic pop
   /* USER CODE END 3 */
@@ -178,8 +227,9 @@ void SystemClock_Config(void)
   }
   /** Initializes the peripherals clocks 
   */
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1|RCC_PERIPHCLK_ADC12;
   PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
+  PeriphClkInit.Adc12ClockSelection = RCC_ADC12CLKSOURCE_SYSCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
