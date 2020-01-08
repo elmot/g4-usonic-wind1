@@ -63,7 +63,7 @@ void SystemClock_Config(void);
 __unused int _write(__unused int file, char *ptr, int len) {
   HAL_UART_Transmit(&hlpuart1, (uint8_t *)ptr, len, len);
 }
-#define ADC_BUF_LEN 5000
+#define ADC_BUF_LEN 500
 uint16_t adcBuffer[ADC_BUF_LEN];
 
 volatile bool adcFinished = 1;
@@ -144,9 +144,9 @@ int main(void)
     unsigned long dists[2000];
 
     for (int shift = 0; shift <2000; shift+= 1) {
-      /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-      /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 
       //    HAL_Delay(100);
       HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);

@@ -1,6 +1,6 @@
 Configuration	g4-usonic-wind1
 STM32CubeMX 	5.5.0
-Date	01/07/2020
+Date	01/08/2020
 MCU	STM32G474RETx
 
 
