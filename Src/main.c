@@ -1,3 +1,4 @@
+#include <limits.h>
 /* USER CODE BEGIN Header */
 /**
  ******************************************************************************
@@ -22,10 +23,8 @@
 #include "main.h"
 #include "adc.h"
 #include "cordic.h"
-#include "dac.h"
 #include "dma.h"
 #include "usart.h"
-#include "opamp.h"
 #include "tim.h"
 #include "gpio.h"
 
@@ -56,19 +55,34 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-redundant-declaration"
+_Noreturn void assert_failed(uint8_t *file, uint32_t line);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-__unused int _write(__unused int file, char *ptr, int len) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "bugprone-reserved-identifier"
+#pragma ide diagnostic ignored "cert-dcl37-c"
+#pragma ide diagnostic ignored "cert-dcl51-cpp"
+int _write(__unused int file, char *ptr, int len) {
+  UNUSED(_write);
   HAL_UART_Transmit(&hlpuart1, (uint8_t *)ptr, len, len);
+  return len;
 }
-#define ADC_BUF_LEN 500
+#pragma clang diagnostic pop
+#pragma clang diagnostic pop
+#define ADC_BUF_LEN 30000
 uint16_t adcBuffer[ADC_BUF_LEN];
 
 volatile bool adcFinished = 1;
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+  UNUSED(hadc);
   adcFinished = true;
+}
+void enableTimUpdateTrgO(TIM_HandleTypeDef *timHandle) {
+  MODIFY_REG(timHandle->Instance->SMCR, TIM_SMCR_SMS, TIM_SMCR_SMS_1);
 }
 
 
@@ -82,7 +96,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -104,58 +117,43 @@ int main(void)
   MX_GPIO_Init();
   MX_LPUART1_UART_Init();
   MX_CORDIC_Init();
-  MX_OPAMP2_Init();
   MX_TIM8_Init();
   MX_DMA_Init();
   MX_ADC2_Init();
-  MX_DAC1_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  HAL_DBGMCU_EnableDBGSleepMode();
   HAL_TIM_Base_Start(&htim8);
   HAL_TIM_OC_Start(&htim8, TIM_CHANNEL_1);
-  HAL_TIMEx_OCN_Start(&htim8, TIM_CHANNEL_1);
   HAL_TIM_OC_Start(&htim8, TIM_CHANNEL_2);
-  HAL_TIMEx_OCN_Start(&htim8, TIM_CHANNEL_2);
-  HAL_DAC_Start(&hdac1,DAC_CHANNEL_1);
-  HAL_DAC_SetValue(&hdac1,DAC_CHANNEL_1,DAC_ALIGN_12B_R,2048);
-  HAL_OPAMP_Start(&hopamp2);
-  HAL_ADCEx_Calibration_Start(&hadc2, ADC_DIFFERENTIAL_ENDED);
+
+  HAL_TIM_Base_Start(&htim1);
+  HAL_TIM_OC_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_OC_Start(&htim1, TIM_CHANNEL_2);
+
+  HAL_TIM_Base_Start(&htim3);
   while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
   }
   /* USER CODE END 2 */
- 
- 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
+#pragma ide diagnostic ignored "EndlessLoop"
   while (1) {
-    long long maxDist = 0;
-    int maxDistIdx = 0;
-    long long minDist = ULONG_LONG_MAX;
-    int minDistIdx = 0;
 
-
-    long long maxDistDiff = 0;
-    int maxDistIdxDiff = 0;
-    long long minDistDiff = ULONG_LONG_MAX;
-    int minDistIdxDiff = 0;
-
-    unsigned long dists[2000];
+    static unsigned long dists[2000];
 
     for (int shift = 0; shift <2000; shift+= 1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-      //    HAL_Delay(100);
       HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-      //    status = HAL_ADC_Stop_DMA(&hadc2);
-      __HAL_TIM_SET_COUNTER(&htim8,0);
-      __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, shift);
-      __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 1999 - shift);
 
-      HAL_Delay(2); // let acoustics to be stabilized
+      HAL_Delay(1); // let acoustics to be stabilized
       adcFinished = false;
       HAL_SuspendTick();
       HAL_StatusTypeDef status =
@@ -263,8 +261,10 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 { 
   /* USER CODE BEGIN 6 */
-  (void) file;
-  (void) line;
+  file = file; // block warnings
+  UNUSED(line);
+  printf("Wrong parameters value: file %s on line %lu\r\n", file, line);
+  while(true);
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
