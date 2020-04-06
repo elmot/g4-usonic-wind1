@@ -1,4 +1,3 @@
-#include <limits.h>
 /* USER CODE BEGIN Header */
 /**
  ******************************************************************************
@@ -74,7 +73,7 @@ int _write(__unused int file, char *ptr, int len) {
 #pragma clang diagnostic pop
 #pragma clang diagnostic pop
 #define ADC_BUF_LEN 30000
-uint16_t adcBuffer[ADC_BUF_LEN];
+int16_t adcBuffer[ADC_BUF_LEN];
 
 volatile bool adcFinished = 1;
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
@@ -136,6 +135,7 @@ int main(void)
   HAL_TIM_Base_Start(&htim3);
   while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
   }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -155,11 +155,11 @@ int main(void)
 
       HAL_Delay(1); // let acoustics to be stabilized
       adcFinished = false;
-      HAL_SuspendTick();
+//      HAL_SuspendTick();
       HAL_StatusTypeDef status =
           HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, ADC_BUF_LEN);
       while (!adcFinished) {
-        __WFI();
+        __NOP();
       }
       HAL_ADC_Stop_DMA(&hadc2);
       HAL_ResumeTick();
@@ -171,7 +171,7 @@ int main(void)
         distort +=  adcBuffer[i] * adcBuffer[i];
       }
       distort -= (unsigned long long)sum * sum / ADC_BUF_LEN;
-//      printf("S: %d; D: %lld\n", shift, distort / ADC_BUF_LEN);
+      printf("S: %d; D: %lld\n", shift, distort / ADC_BUF_LEN);
       /*## Configure the CORDIC peripheral
        * ####################################*/
       dists[shift] = distort / ADC_BUF_LEN;
