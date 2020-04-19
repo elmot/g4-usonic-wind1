@@ -45,6 +45,8 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+#define ADC_BUF_LEN 32700
+extern uint16_t adcBuffer[ADC_BUF_LEN];
 
 /* USER CODE END EC */
 
@@ -57,7 +59,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void processData();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

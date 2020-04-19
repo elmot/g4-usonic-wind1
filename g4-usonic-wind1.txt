@@ -1,6 +1,6 @@
 Configuration	g4-usonic-wind1
 STM32CubeMX 	5.6.0
-Date	03/08/2020
+Date	04/12/2020
 MCU	STM32G474RETx
 
 
@@ -25,8 +25,6 @@ TIM1	Internal Clock	TIM1_VS_ClockSourceINT	VP_TIM1_VS_ClockSourceINT
 TIM1	Output Compare CH1	TIM1_CH1	PA8
 TIM1	Output Compare CH2	TIM1_CH2	PA9
 TIM3	Internal Clock	TIM3_VS_ClockSourceINT	VP_TIM3_VS_ClockSourceINT
-TIM8	Gated Mode	TIM8_VS_ControllerModeGated	VP_TIM8_VS_ControllerModeGated
-TIM8	ITR0	TIM8_VS_ClockSourceITR	VP_TIM8_VS_ClockSourceITR
 TIM8	Internal Clock	TIM8_VS_ClockSourceINT	VP_TIM8_VS_ClockSourceINT
 TIM8	Output Compare CH1	TIM8_CH1	PC6
 TIM8	Output Compare CH2	TIM8_CH2	PC7
@@ -71,8 +69,6 @@ TIM1	Internal Clock	TIM1_VS_ClockSourceINT	VP_TIM1_VS_ClockSourceINT
 TIM1	Output Compare CH1	TIM1_CH1	PA8
 TIM1	Output Compare CH2	TIM1_CH2	PA9
 TIM3	Internal Clock	TIM3_VS_ClockSourceINT	VP_TIM3_VS_ClockSourceINT
-TIM8	Gated Mode	TIM8_VS_ControllerModeGated	VP_TIM8_VS_ControllerModeGated
-TIM8	ITR0	TIM8_VS_ClockSourceITR	VP_TIM8_VS_ClockSourceITR
 TIM8	Internal Clock	TIM8_VS_ClockSourceINT	VP_TIM8_VS_ClockSourceINT
 TIM8	Output Compare CH1	TIM8_CH1	PC6
 TIM8	Output Compare CH2	TIM8_CH2	PC7

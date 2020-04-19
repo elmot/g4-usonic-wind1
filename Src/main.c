@@ -72,18 +72,55 @@ int _write(__unused int file, char *ptr, int len) {
 }
 #pragma clang diagnostic pop
 #pragma clang diagnostic pop
-#define ADC_BUF_LEN 30000
-int16_t adcBuffer[ADC_BUF_LEN];
+uint16_t adcBuffer[ADC_BUF_LEN];
 
-volatile bool adcFinished = 1;
+volatile int adcFinished = 3;
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
   UNUSED(hadc);
-  adcFinished = true;
+  if (--adcFinished == 0) {
+    __HAL_TIM_ENABLE(&htim3);
+    __HAL_TIM_ENABLE(&htim1);
+    __HAL_TIM_ENABLE(&htim8);
+  }
 }
 void enableTimUpdateTrgO(TIM_HandleTypeDef *timHandle) {
   MODIFY_REG(timHandle->Instance->SMCR, TIM_SMCR_SMS, TIM_SMCR_SMS_1);
 }
 
+void static inline writeBit(const volatile uint32_t *reg, int bitNum, int v) {
+  *(volatile int *)(PERIPH_BB_BASE + 32L * ((uint32_t)(reg)-PERIPH_BASE) +
+                    bitNum) = v;
+}
+void static inline setBit(volatile uint32_t *reg, int bitNum) {
+  writeBit(reg, bitNum, 1);
+}
+void static inline resetBit(volatile uint32_t *reg, int bitNum) {
+  writeBit(reg, bitNum, 0);
+}
+void startTimers() {
+  HAL_SuspendTick();
+  __HAL_TIM_SET_COUNTER(&htim1,0);
+  __HAL_TIM_SET_COUNTER(&htim3,0);
+  __HAL_TIM_SET_COUNTER(&htim8,0);
+  setBit(&TIM1->CR1, TIM_CR1_CEN_Pos);
+  setBit(&TIM3->CR1, TIM_CR1_CEN_Pos);
+  setBit(&TIM8->CR1, TIM_CR1_CEN_Pos);
+  /*
+    *(volatile uint32_t *)(PERIPH_BB_BASE +
+                           32L * (uint32_t)((&) - PERIPH_BASE)) =
+        0xFFFFFFFF;
+    HAL_TIM_Base_Start(&htim8);
+    HAL_TIM_Base_Start(&htim3);
+    HAL_TIM_Base_Start(&htim1);
+  */
+}
+
+void stoptTimers() {
+  resetBit(&TIM3->CR1, TIM_CR1_CEN_Pos);
+  resetBit(&TIM1->CR1, TIM_CR1_CEN_Pos);
+  resetBit(&TIM8->CR1, TIM_CR1_CEN_Pos);
+  HAL_ResumeTick();
+}
 
 /* USER CODE END 0 */
 
@@ -124,15 +161,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
   HAL_DBGMCU_EnableDBGSleepMode();
-  HAL_TIM_Base_Start(&htim8);
   HAL_TIM_OC_Start(&htim8, TIM_CHANNEL_1);
   HAL_TIM_OC_Start(&htim8, TIM_CHANNEL_2);
 
-  HAL_TIM_Base_Start(&htim1);
   HAL_TIM_OC_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_OC_Start(&htim1, TIM_CHANNEL_2);
 
-  HAL_TIM_Base_Start(&htim3);
   while (HAL_ADC_GetState(&hadc2) == HAL_ADC_STATE_REG_BUSY) {
   }
 
@@ -153,30 +187,20 @@ int main(void)
 
       HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 
-      HAL_Delay(1); // let acoustics to be stabilized
-      adcFinished = false;
-//      HAL_SuspendTick();
-      HAL_StatusTypeDef status =
-          HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, ADC_BUF_LEN);
-      while (!adcFinished) {
+      adcFinished = 5;
+      stoptTimers();
+      HAL_ADC_Start_DMA(&hadc2, (uint32_t *)&adcBuffer, ADC_BUF_LEN);
+      HAL_Delay(1000);
+      startTimers();
+      while (adcFinished != 0) {
         __NOP();
       }
+      stoptTimers();
       HAL_ADC_Stop_DMA(&hadc2);
       HAL_ResumeTick();
-
-      unsigned long sum = 0;
-      unsigned long long distort = 0;
-      for(int i = 0; i < ADC_BUF_LEN; ++i) {
-        sum +=  adcBuffer[i];
-        distort +=  adcBuffer[i] * adcBuffer[i];
-      }
-      distort -= (unsigned long long)sum * sum / ADC_BUF_LEN;
-      printf("S: %d; D: %lld\n", shift, distort / ADC_BUF_LEN);
-      /*## Configure the CORDIC peripheral
-       * ####################################*/
-      dists[shift] = distort / ADC_BUF_LEN;
+      processData();
+      HAL_NVIC_SystemReset(); // todo remove
     }
-    __NOP();
   }
 #pragma clang diagnostic pop
   /* USER CODE END 3 */
